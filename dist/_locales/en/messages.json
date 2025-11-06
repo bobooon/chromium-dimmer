@@ -8,29 +8,26 @@
   "toggleCommand": {
     "message": "Toggle the overlay"
   },
+  "disabledHelp": {
+    "message": "Due to browser limitations, this tab or website does not support an overlay."
+  },
   "on": {
     "message": "Activate"
-  },
-  "onHelp": {
-    "message": "Turn on the overlay for the current website."
   },
   "off": {
     "message": "Deactivate"
   },
-  "offHelp": {
-    "message": "Turn off the overlay for the current website."
-  },
-  "offDisabledHelp": {
-    "message": "Due to browser limitations, this website does not support an overlay."
+  "activateHelp": {
+    "message": "Toggle overlay for the current website."
   },
   "global": {
     "message": "Use global settings"
   },
   "globalHelp": {
-    "message": "When enabled, the shared global settings are applied."
+    "message": "Apply shared global settings for the current website."
   },
   "blend": {
-    "message": "Blending Mode"
+    "message": "Blend Mode"
   },
   "blendColorBurn": {
     "message": "Color Burn"
@@ -63,7 +60,7 @@
     "message": "Intensity"
   },
   "opacityHelp": {
-    "message": "Change the intensity of the overlay. Use the selector above to adjust how the overlay blends with the website."
+    "message": "Adjust the overlay blending intensity."
   },
   "color": {
     "message": "Color"

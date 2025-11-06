@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
-import { Box, Button, DropdownMenu, Flex, Select, Separator } from '@radix-ui/themes'
+import { Box, Button, DropdownMenu, Flex, Select, Separator, Text } from '@radix-ui/themes'
+import { AlertCircle } from 'lucide-react'
 import { useEffect, useReducer } from 'react'
 import { HexColorPicker } from 'react-colorful'
 import { api } from '../extension/api.ts'
@@ -13,11 +14,21 @@ export default function Page() {
   const [state, dispatch] = useReducer(pageReducer, { settings: structuredClone(defaultSettings) })
   const { settings } = state
   const mode = settings[settings.url.mode]
-  const disabled = settings.url.hostname === '*'
 
   useEffect(() => {
     (async () => dispatch({ type: 'getSettings', value: await api.getSettings() }))()
   }, [])
+
+  if (settings.url.hostname === '*' && !import.meta.env.DEV) {
+    return (
+      <Flex p="5" width="400px" gap="3">
+        <AlertCircle size={20} />
+        <Text size="2">
+          {api.getMessage('disabledHelp')}
+        </Text>
+      </Flex>
+    )
+  }
 
   const onReset = (all = false) => {
     if (window.confirm(api.getMessage(all ? 'resetAllConfirm' : 'resetUrlConfirm')))
@@ -29,17 +40,15 @@ export default function Page() {
       <Flex direction="column" gap="3">
         <UiSwitch
           label={api.getMessage(!settings.url.on ? 'on' : 'off')}
-          tooltip={api.getMessage(disabled ? 'offDisabledHelp' : (settings.url.on ? 'onHelp' : 'offHelp'))}
-          checked={!disabled && settings.url.on}
+          tooltip={api.getMessage('activateHelp')}
+          checked={settings.url.on}
           onCheckedChange={value => dispatch({ type: 'setOn', value })}
-          disabled={disabled}
         />
         <UiSwitch
           label={api.getMessage('global')}
           tooltip={api.getMessage('globalHelp')}
-          checked={!disabled && settings.url.mode === 'global'}
+          checked={settings.url.mode === 'global'}
           onCheckedChange={value => dispatch({ type: 'setMode', value })}
-          disabled={disabled}
         />
 
         <Box my="3" mx="-5">
