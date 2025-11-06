@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 import { Box, Button, DropdownMenu, Flex, Select, Separator, Text } from '@radix-ui/themes'
 import { AlertCircle } from 'lucide-react'
 import { useEffect, useReducer } from 'react'
