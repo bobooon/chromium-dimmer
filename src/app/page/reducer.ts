@@ -1,12 +1,10 @@
 import type { Settings } from '../extension/settings.ts'
-import { api } from '../extension/api.ts'
-import { defaultSettings } from '../extension/settings.ts'
 
 interface State { settings: Settings }
 
 const actions = {
-  getSettings: (state: State, value: Settings) => {
-    state.settings = { ...value }
+  setSettings: (state: State, value: Settings) => {
+    state.settings = structuredClone(value)
   },
   setOn: (state: State, value: boolean) => {
     state.settings.url.on = value
@@ -23,12 +21,6 @@ const actions = {
   setColor: (state: State, value: string) => {
     state.settings[state.settings.url.mode].overlay.color = value
   },
-  reset: (state: State, _value: boolean) => {
-    const settings = structuredClone(defaultSettings)
-    settings.url.hostname = state.settings.url.hostname
-    settings.global = state.settings.global
-    state.settings = settings
-  },
 }
 
 type Action = {
@@ -39,12 +31,11 @@ type Action = {
 }[keyof typeof actions]
 
 export function pageReducer(prevState: State, action: Action) {
-  const state = { ...prevState }
+  const state = structuredClone(prevState)
 
   if (actions[action.type]) {
-    const handler = actions[action.type] as (state: State, value: any) => any
+    const handler = actions[action.type] as (state: State, value: any) => void
     handler(state, action.value)
-    api.saveSettings(state.settings, action.type === 'reset' && action.value)
   }
 
   return state

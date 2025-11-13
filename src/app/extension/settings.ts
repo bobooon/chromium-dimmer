@@ -15,3 +15,7 @@ export const defaultSettings = {
 }
 
 export type Settings = typeof defaultSettings
+
+export function getDefaultSettings() {
+  return structuredClone(defaultSettings) as Settings
+}

@@ -1,5 +1,5 @@
 import type { Settings } from './settings.ts'
-import { defaultSettings } from './settings.ts'
+import { getDefaultSettings } from './settings.ts'
 
 async function updateTabs(tabId?: number) {
   try {
@@ -8,17 +8,21 @@ async function updateTabs(tabId?: number) {
       : (await chrome.tabs.query({ active: true }))
 
     await Promise.allSettled(
-      tabs.map(async tab => await chrome.tabs.sendMessage(tab.id!, {
-        action: 'update',
-        payload: { settings: await getSettings(tab.id) },
-      })),
+      tabs.map(async (tab) => {
+        if (tab.id) {
+          await chrome.tabs.sendMessage(tab.id, {
+            action: 'update',
+            payload: { settings: await getSettings(tab.id) },
+          })
+        }
+      }),
     )
   }
   catch {}
 }
 
 async function getSettings(tabId?: number) {
-  const settings = structuredClone(defaultSettings)
+  const settings = getDefaultSettings()
   settings.global = (await chrome.storage.local.get(['_global']))._global || settings.global
 
   try {
@@ -41,10 +45,9 @@ async function getSettings(tabId?: number) {
 async function saveSettings(newSettings: Settings) {
   if (newSettings.url.hostname === '*' || newSettings.url.mode === 'global')
     await chrome.storage.local.set({ _global: newSettings.global })
-  if (newSettings.url.hostname === '*')
-    return
+  if (newSettings.url.hostname !== '*')
+    await chrome.storage.local.set({ [newSettings.url.hostname]: newSettings.url })
 
-  await chrome.storage.local.set({ [newSettings.url.hostname]: newSettings.url })
   await updateTabs()
 }
 
@@ -55,26 +58,22 @@ chrome.runtime.onMessage.addListener((message, _sender, response) => {
       return true
 
     case 'saveSettings':
-      saveSettings(message.payload)
-      return false
+      saveSettings(message.payload).then(() => response(true))
+      return true
 
     case 'resetSettings':
-      chrome.storage.local.clear().then(() => updateTabs())
-      return false
+      chrome.storage.local.clear().then(() => updateTabs().then(() => response(true)))
+      return true
   }
 })
 
-// Watch for URL change in tabs.
+// Watch for tab URL changes and activation.
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
   if (changeInfo.status === 'complete')
     await updateTabs(tabId)
 })
 
-// Watch for tab activation.
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  if (activeInfo.tabId)
-    await updateTabs(activeInfo.tabId)
-})
+chrome.tabs.onActivated.addListener(async activeInfo => await updateTabs(activeInfo.tabId))
 
 // Watch for toggle command shortcut.
 chrome.commands.onCommand.addListener(async (command) => {
